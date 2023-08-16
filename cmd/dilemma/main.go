@@ -46,7 +46,7 @@ func iteration(r *rand.Rand, agents []float64, choices []bool, count int) (int, 
 	}
 	if redCount < count/2 {
 		// blue wins
-		fmt.Println("blue wins")
+		//fmt.Println("blue wins")
 
 	} else {
 		// red wins
