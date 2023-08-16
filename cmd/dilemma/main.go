@@ -97,11 +97,37 @@ func runDilemma(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	slopeStart, err := cmd.Flags().GetInt("slope_start")
+	if err != nil {
+		return err
+	}
+
+	slopeEnd, err := cmd.Flags().GetInt("slope_end")
+	if err != nil {
+		return err
+	}
+
+	slopeStartF := float64(slopeStart) / 100.0
+	slopeEndF := float64(slopeEnd) / 100.0
+	fmt.Printf("agents:%d, iterations:%d, slope_start:%f slope_end:%f\n", agentCount, iterations, slopeStartF, slopeEndF)
+
+	if slopeEndF <= slopeStartF {
+		return fmt.Errorf("invalid strategy slope range: %f..%f", slopeStartF, slopeEndF)
+	}
+
 	agents := make([]float64, agentCount)
 	src := rand.NewSource(time.Now().Unix())
 	r := rand.New(src)
 	for i := range agents {
-		agents[i] = r.Float64()
+		v := r.Float64()
+		if v <= slopeStartF {
+			agents[i] = 0
+		} else if v >= slopeEndF {
+			agents[i] = 1
+		} else {
+			agents[i] = (v - slopeStartF) / (slopeEndF - slopeStartF)
+		}
+
 	}
 	currentCount := agentCount
 	choices := make([]bool, agentCount)
@@ -128,8 +154,8 @@ func NewRootCommand() *cobra.Command {
 	}
 	rootCmd.PersistentFlags().IntP("agents", "N", 150, "Initial number of agents")
 	rootCmd.PersistentFlags().IntP("iterations", "I", 100, "Number of iterations")
-	rootCmd.PersistentFlags().IntP("slope_start", "S", 0, "Piecewise slope start")
-	rootCmd.PersistentFlags().IntP("slope_end", "E", 1, "Piecewise slope end")
+	rootCmd.PersistentFlags().IntP("slope_start", "S", 0, "Piecewise slope start, %")
+	rootCmd.PersistentFlags().IntP("slope_end", "E", 100, "Piecewise slope end, %")
 
 	return rootCmd
 }
